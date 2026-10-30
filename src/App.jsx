@@ -14,9 +14,11 @@ import Organisatie from './views/Organisatie'
 import Tarieven from './views/Tarieven'
 import Budget from './views/Budget'
 import Login from './views/Login'
+import Fotos from './views/Fotos'
 
 const VIEWS = [
   { id: 'aanmelden', l: 'Aanmelden', pub: true, C: Aanmelden },
+  { id: 'fotos', l: 'Foto’s', pub: true, C: Fotos },
   { id: 'kassa', l: 'Kassa', C: Kassa },
   { id: 'teams', l: 'Teams', C: Teams },
   { id: 'gezinnen', l: 'Gezinnen', C: Gezinnen },
@@ -85,8 +87,11 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // anonieme sessies (fotogalerij) tellen niet als inloggen
+  const echt = session && !session.user.is_anonymous ? session : null
+
   // rol bepalen en gegevens laden
-  const uid = session?.user?.id
+  const uid = echt?.user?.id
   useEffect(() => {
     if (!sb) return
     if (!uid) { setRole({ staff: false, beheerder: false, checked: true }); setS(null); return }
@@ -127,11 +132,12 @@ export default function App() {
   }, [dlg])
 
   const e = S ? S.editions.find(x => x.jaar === S.cur) : null
-  const ctx = useMemo(() => ({ S, e, session, role, update, run, reload, toast, setCur, openDialog, closeDialog, setPub }),
-    [S, e, session, role, update, run, reload, toast, setCur, openDialog, closeDialog])
+  const ctx = useMemo(() => ({ S, e, session: echt, authSession: session, role, update, run, reload, toast, setCur, openDialog, closeDialog, setPub }),
+    [S, e, echt, session, role, update, run, reload, toast, setCur, openDialog, closeDialog])
 
   const staff = role.staff && S
-  const tabs = VIEWS.filter(v => v.id === 'aanmelden' || (staff && !v.pub) || (v.id === 'login' && !session))
+  const tabs = VIEWS.filter(v => v.id === 'aanmelden' || v.id === 'fotos' || (staff && !v.pub) || (v.id === 'login' && !echt))
+  const eersteBeheer = tabs.findIndex(v => !v.pub)
   const cur = VIEWS.find(v => v.id === view)
   let Content
   if (!configured) Content = Setup
@@ -163,7 +169,7 @@ export default function App() {
         <nav className="tabs">
           {tabs.map((v, i) => (
             <span key={v.id} style={{ display: 'contents' }}>
-              {i === 1 && <span className="sep" />}
+              {i === eersteBeheer && <span className="sep" />}
               <a href={'#' + v.id} className={view === v.id ? 'on' : ''}>{!v.pub && <Lock />}{v.id === 'login' && <Lock />}{v.l}</a>
             </span>
           ))}
@@ -171,7 +177,7 @@ export default function App() {
       </header>
       <main><Content /></main>
       <div className="foot">
-        {session ? <span>Ingelogd als {session.user.email}. <button className="linkbtn" onClick={() => sb.auth.signOut().then(() => { window.location.hash = '#aanmelden' })}>Uitloggen</button></span> : <span />}
+        {echt ? <span>Ingelogd als {echt.user.email}. <button className="linkbtn" onClick={() => sb.auth.signOut().then(() => { window.location.hash = '#aanmelden' })}>Uitloggen</button></span> : <span />}
       </div>
       <dialog ref={dRef} onClose={() => setDlg(null)}><div className="dlg">{dlg}</div></dialog>
       <div id="toast" role="status" className={msg ? 'show' : ''}>{msg}</div>

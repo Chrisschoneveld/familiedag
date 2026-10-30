@@ -1,7 +1,7 @@
 # Familiedag
 
-Webapp voor de familiedag: aanmelden, kassa, teams, gezinnen, organisatie, tarieven en budget.
-React + Vite, gehost op GitHub Pages, met Supabase als database.
+Webapp voor de familiedag: aanmelden, foto’s, kassa, teams, gezinnen, organisatie, tarieven en budget.
+React + Vite, gehost op Vercel, met Supabase als database en opslag.
 
 ## 1. Supabase inrichten
 
@@ -17,25 +17,27 @@ React + Vite, gehost op GitHub Pages, met Supabase als database.
 5. Noteer bij **Project Settings → API** de **Project URL** en de **anon public** key.
    De `service_role` key heb je nergens voor nodig. Deel die met niemand.
 
-## 2. GitHub Pages
+## 2. Vercel
 
-1. Maak een **openbare** repository `familiedag` aan op GitHub.
-2. Zet de bestanden erin:
-   ```bash
-   git init -b main
-   git add .
-   git commit -m "Familiedag app"
-   git remote add origin https://github.com/<jouw-github-naam>/familiedag.git
-   git push -u origin main
-   ```
-3. In de repository: **Settings → Secrets and variables → Actions → tabblad Variables**, voeg toe:
-   - `VITE_SUPABASE_URL` = de Project URL
-   - `VITE_SUPABASE_ANON_KEY` = de anon public key
-4. **Settings → Pages → Source**: kies **GitHub Actions**.
-5. Ga naar **Actions** en start **Publiceren op GitHub Pages** (of push een wijziging).
-   Na een minuut staat de app op `https://<jouw-github-naam>.github.io/familiedag/`.
+1. Importeer de GitHub-repository in Vercel (Add New → Project), framework **Vite**.
+2. Voeg bij **Environment Variables** toe, type **Config** (deze waarden zijn openbaar):
+   - `VITE_SUPABASE_URL` = de Project URL, zonder `/rest/v1`
+   - `VITE_SUPABASE_ANON_KEY` = de anon key (begint met `eyJ`)
+3. Zet het Vercel-adres in Supabase bij **Authentication → URL Configuration** (Site URL én Redirect URLs).
 
 Elke push naar `main` zet automatisch een nieuwe versie online.
+
+## Fotogalerij
+
+1. Voer `familiedag-fotos.sql` uit in de SQL Editor (na het eerste script).
+2. Zet in Supabase **Authentication → Sign In / Providers → Allow anonymous sign-ins** aan.
+   Familieleden krijgen zo op de achtergrond een anonieme sessie die na het invullen van de familiecode toegang geeft.
+
+Foto’s worden in de browser verkleind tot maximaal 2048 pixels en omgezet naar WebP. Video’s worden omgezet naar
+MP4 (H.264 + AAC, maximaal 720p, 30 beelden per seconde). Lange video’s krijgen automatisch een lagere kwaliteit,
+zodat ze onder de 50 MB per bestand van Supabase Free blijven. Het jaar wordt gelezen uit de opnamedatum.
+
+Verwijderen kan door wie het heeft toegevoegd (op hetzelfde toestel) en door de beheerder.
 
 ## 3. Lokaal testen
 
@@ -55,6 +57,7 @@ npm run dev
 
 ## Goed om te weten
 
+- Gratis Supabase heeft ongeveer 1 GB opslag. De beheerder ziet onderaan de fotopagina hoeveel er gebruikt is.
 - Een gratis Supabase-project wordt na een week zonder gebruik **gepauzeerd**. Je gegevens blijven bewaard;
   zet het project een paar weken voor de aanmeldingen weer aan via het Supabase-dashboard.
 - De ingebouwde e-mail van Supabase verstuurt maar een beperkt aantal inloglinks per uur. Voor een handvol

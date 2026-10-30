@@ -9,7 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@jsquash/webp": "1.5.0",
+    "@mediabunny/aac-encoder": "1.61.4",
     "@supabase/supabase-js": "2.45.4",
+    "exifr": "7.1.3",
+    "mediabunny": "1.61.4",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
